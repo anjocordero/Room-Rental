@@ -1,5 +1,5 @@
 import csv
-from create_database import cleanDataFile
+from config import cleanDataFile
 
 '''
 Errors:
@@ -10,7 +10,7 @@ Errors:
 '''
 
 '''
-CREATE TABLE {table} (\
+Table Structure: (\
         0  id INT PRIMARY KEY,\
         1  name TEXT,\
         2  host_id INT,\
@@ -28,12 +28,6 @@ CREATE TABLE {table} (\
         14 calculated_host_listings_count INT,\
         15 availability_365 INT\
     )
-
-Unique data types:
-    - Int (only numeric)
-    - Text (all characters allowed)
-    - Float (numeric with a single decimal point)
-    - Date (YYYY-MM-DD, numeric only)
 '''
 
 def clean(dataFile):
