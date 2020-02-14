@@ -6,8 +6,12 @@ import os.path
 # Either create a super user with this name, or change superUser to match yours
 superUser = 'postgres'
 databaseName = 'earnup'
+postgres_host = 'localhost'
+postgres_port = '5432'
+
 dataFile = './data/AB_NYC_2019.csv'
 cleanDataFile = './data/AB_NYC_2019_CLEAN.csv'
+
 
 # This table will be overwritten, so make sure you don't need data inside it.
 tableName = 'rentals'
@@ -30,29 +34,30 @@ tableSQL = "CREATE TABLE {table} (\
         availability_365 INT\
         )"
 
-# Assumes postgreSQL is running locally
-conn = psycopg2.connect(host='localhost', dbname=superUser, user=superUser)
+conn = psycopg2.connect(host=postgres_host, dbname=superUser, user=superUser)
 
 # Allows for creation of databases
 conn.autocommit = True
 cur = conn.cursor()
 
+# Create new database if it doesn't already exist
 try:
     cur.execute(sql.SQL("CREATE DATABASE {database}").format(
         database=sql.Identifier(databaseName)
     ))
-except psycopg2.DatabaseError: # If database already exists
+except psycopg2.DatabaseError:
     pass
 
 cur.close()
 conn.close()
 
-conn = psycopg2.connect(host='localhost', dbname=databaseName, user=superUser)
+# Switch to newly created database
+conn = psycopg2.connect(host=postgres_host, dbname=databaseName, user=superUser)
 conn.autocommit = True
 cur = conn.cursor()
 
+# Create a table with matching column headers
 try:
-    # Create a table with matching column headers
     cur.execute(sql.SQL(tableSQL).format(
         table=sql.Identifier(tableName)
     ))
@@ -67,6 +72,8 @@ except psycopg2.DatabaseError:
         table=sql.Identifier(tableName)
     ))    
 
+# Create clean data file if it doesn't already exist
+# NOTE: if "clean" data file exists but is not clean then import will fail
 if  not (os.path.isfile(cleanDataFile)):
     import clean_data
     clean_data.clean(dataFile)

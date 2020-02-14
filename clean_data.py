@@ -1,4 +1,5 @@
 import csv
+from create_database import cleanDataFile
 
 '''
 Errors:
@@ -42,13 +43,12 @@ def clean(dataFile):
             # Eliminate null characters and strange commas
             reader = csv.reader(line.replace("\0", "").replace("，", ",") for line in f)
 
-            with open(dataFile.replace(".csv", "") + "_CLEAN.csv", 'w', newline='') as fileToWrite:
+            with open(cleanDataFile, 'w', newline='') as fileToWrite:
                 writer = csv.writer(fileToWrite)
                 header = True
                 for row in reader:
                     if not header:
                         # Remove non-numeric symbols from numeric fields
-                        # 0 2 (6) (7) 9 10 11 12* (13) 14
                         indices = [0, 2, 6, 7, 9, 10, 11, 12, 13, 14]
                         for index in indices:
                             row[index] = ''.join(c for c in row[index] if c in '1234567890.-')
