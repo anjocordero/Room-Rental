@@ -7,6 +7,8 @@ postgres_port = '5432'
 dataFile = './data/AB_NYC_2019.csv'
 cleanDataFile = './data/AB_NYC_2019_CLEAN.csv'
 
+sqlColumns = '*'
+
 # This table will be overwritten, so make sure you don't need data inside it.
 tableName = 'rentals'
 tableSQL = "CREATE TABLE {table} (\
@@ -28,6 +30,7 @@ tableSQL = "CREATE TABLE {table} (\
         availability_365 INT\
         )"
 
+# Returns distance between two coordinates in miles.
 distanceSQL = "CREATE OR REPLACE FUNCTION distance(lat1 FLOAT, lon1 FLOAT,\
                 lat2 FLOAT, lon2 FLOAT)\
                 RETURNS FLOAT AS $$\
