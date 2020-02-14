@@ -1,7 +1,6 @@
 import json
 import requests
 import psycopg2
-import geopy.distance
 from flask import Flask
 from psycopg2 import sql
 from flask_restful import Api, Resource, reqparse
@@ -23,67 +22,71 @@ class QueryListing(Resource):
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
 
-    def get(self, params={}):
+    def get(self):
+        params = parser.parse_args()
 
-        if params:
-            # Either text query or coordinates are required
-            if params['query'] or (params['latitude'] and params['longitude']):
-                
-                if params['query']:
-                    pass
-                else:    
+        if not params:
+            response = "No parameters given. Provide query or coordinates."
+            status_code = 422
+            return (response, status_code)
 
-                    if params['distance']:
-                        self.cursor.execute(sql.SQL(
-                            "SELECT {columns} FROM {table} WHERE\
-                            distance(\
-                                latitude, longitude, {latitude}, {longitude})\
-                            < {distance}\
-                            ORDER BY\
-                            distance(\
-                                latitude, longitude, {latitude}, {longitude})".format(
-                                columns=sql.Identifier(sqlColumns),
-                                latitude=sql.Identifier(params['latitude']),
-                                longitude=sql.Identifier(params['longitude']),
-                                distance=sql.Identifier(params['distance'])
-                            )
-                        ))
-                    # If distance not provided
-                    else:
-                        self.cursor.execute(sql.SQL(
-                            "SELECT {columns} FROM {table}\
-                            ORDER BY\
-                            distance(\
-                                latitude, longitude, {latitude}, {longitude})".format(
-                                columns=sql.Identifier(sqlColumns),
-                                latitude=sql.Identifier(params['latitude']),
-                                longitude=sql.Identifier(params['longitude']),
-                                distance=sql.Identifier(params['distance'])
-                            )
-                        ))
-                        self.cursor
+        if params['query']:
+            """
+            Cases:
+                - L&L&D
+                - L&L
+                - None
+                - Other
+            """
+            pass
 
-                # # TODO: Implement appropriate SQL queries
-                # self.cursor.execute(sql.SQL(
-                #     "SELECT * FROM {table}"
-                #     ).format(
-                #     table=sql.Identifier(tableName)
-                # ))
-                # return json.dumps(self.cursor.fetchone(), default=str)
-            
+        # if coordinates and no query
+        elif params['latitude'] and params['longitude']:
+            if params['distance']:
+                self.cursor.execute(sql.SQL(
+                    "SELECT * FROM {table} WHERE\
+                    distance(\
+                        latitude, longitude, {latitude}, {longitude})\
+                    < {distance}\
+                    ORDER BY\
+                    distance(\
+                        latitude, longitude, {latitude}, {longitude})").format(
+                        # columns=sql.Identifier(sqlColumns),
+                        table=sql.Identifier(tableName),
+                        latitude=sql.Identifier(params['latitude']),
+                        longitude=sql.Identifier(params['longitude']),
+                        distance=sql.Identifier(params['distance'])
+                        )
+                )
+                return json.dumps(self.cursor.fetchall(), default=str)
+
+            # if no distance
             else:
-                response = "Incorrect format given. Provide query or latitude and longitude."
-                status_code = 422
-                return (response, status_code)
+                self.cursor.execute(sql.SQL(
+                    "SELECT * FROM {table}\
+                    ORDER BY\
+                    distance(\
+                        latitude, longitude, (%s), (%s))").format(
+                        # columns=sql.Identifier(sqlColumns),
+                        table=sql.Identifier(tableName)),
+                        (params['latitude'], params['longitude'])
+                    
+                )
+                return json.dumps(self.cursor.fetchall(), default=str)
 
-        response = "No parameters given."
-        status_code = 422
-        return (response, status_code)
+        # distance only
+        else:
+            response = "Incorrect parameters given. Provide query or coordinates."
+            status_code = 422
+            return (response, status_code)
 
-    def findNearby(self, latitude, longitude, distance=None):
-        self.cursor.execute(sql.SQL("SELECT * FROM {table}").format(
-            table=sql.Identifier(tableName)
-        ))
+parser = reqparse.RequestParser()
+parser.add_argument('query', type=str)
+parser.add_argument('longitude', type=str)
+parser.add_argument('latitude', type=str)
+parser.add_argument('distance', type=str)
 
 api.add_resource(QueryListing, "/")
-app.run(debug=True)
+
+if __name__ == '__main__':
+    app.run(debug=True)
