@@ -38,7 +38,47 @@ class QueryListing(Resource):
                 - None
                 - Other
             """
-            pass
+            if params['latitude'] and params['longitude']:
+                if params['distance']:
+                    self.cursor.execute(sql.SQL(
+                        "SELECT * from {table} WHERE\
+                            name ILIKE %(query)s AND distance(\
+                                latitude, longitude, %(latitude)s, %(longitude)s) < %(distance)s\
+                            ORDER BY\
+                            distance(\
+                                latitude, longitude, %(latitude)s, %(longitude)s)
+                                    ").format(
+                            # columns=sql.Identifier(sqlColumns),
+                            table=sql.Identifier(tableName)),
+                            {
+                                'query': '%'+params['query']+'%',
+                                'latitude': params['latitude'],
+                                'longitude': params['longitude'],
+                                'distance': params['distance']
+                            }
+                    )
+                    return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                # if no distance
+                else:
+                    self.cursor.execute(sql.SQL(
+                        "SELECT * from {table} WHERE\
+                            name ILIKE %s").format(
+                            # columns=sql.Identifier(sqlColumns),
+                            table=sql.Identifier(tableName)),
+                            ('%'+params['query']+'%',)
+                    )
+                    return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+
+            # if query and no coordinates
+            else:
+                self.cursor.execute(sql.SQL(
+                    "SELECT * from {table} WHERE\
+                        name ILIKE %s").format(
+                        # columns=sql.Identifier(sqlColumns),
+                        table=sql.Identifier(tableName)),
+                        ('%'+params['query']+'%',)
+                )
+                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
 
         # if coordinates and no query
         elif params['latitude'] and params['longitude']:
@@ -46,19 +86,21 @@ class QueryListing(Resource):
                 self.cursor.execute(sql.SQL(
                     "SELECT * FROM {table} WHERE\
                     distance(\
-                        latitude, longitude, {latitude}, {longitude})\
-                    < {distance}\
+                        latitude, longitude, %(latitude)s, %(longitude)s)\
+                    < %(distance)s\
                     ORDER BY\
                     distance(\
-                        latitude, longitude, {latitude}, {longitude})").format(
-                        # columns=sql.Identifier(sqlColumns),
-                        table=sql.Identifier(tableName),
-                        latitude=sql.Identifier(params['latitude']),
-                        longitude=sql.Identifier(params['longitude']),
-                        distance=sql.Identifier(params['distance'])
-                        )
+                        latitude, longitude, %(latitude)s, %(longitude)s)").format(
+                        columns=sql.Identifier(sqlColumns),
+                        table=sql.Identifier(tableName)),
+                        {
+                            'latitude': params['latitude'],
+                            'longitude': params['longitude'],
+                            'distance': params['distance']
+                        }
+                        
                 )
-                return json.dumps(self.cursor.fetchall(), default=str)
+                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
 
             # if no distance
             else:
@@ -66,13 +108,16 @@ class QueryListing(Resource):
                     "SELECT * FROM {table}\
                     ORDER BY\
                     distance(\
-                        latitude, longitude, (%s), (%s))").format(
-                        # columns=sql.Identifier(sqlColumns),
+                        latitude, longitude, %(latitude)s, %(longitude)s)").format(
+                        columns=sql.Identifier(sqlColumns),
                         table=sql.Identifier(tableName)),
-                        (params['latitude'], params['longitude'])
+                        {
+                            'latitude': params['latitude'],
+                            'longitude': params['longitude']
+                        }
                     
                 )
-                return json.dumps(self.cursor.fetchall(), default=str)
+                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
 
         # distance only
         else:

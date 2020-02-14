@@ -7,7 +7,7 @@ postgres_port = '5432'
 dataFile = './data/AB_NYC_2019.csv'
 cleanDataFile = './data/AB_NYC_2019_CLEAN.csv'
 
-sqlColumns = '*'
+sqlColumns = 'id, name'
 
 # This table will be overwritten, so make sure you don't need data inside it.
 tableName = 'rentals'
