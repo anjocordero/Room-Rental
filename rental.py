@@ -4,8 +4,8 @@ import psycopg2
 from flask import Flask
 from psycopg2 import sql
 from flask_restful import Api, Resource, reqparse
-from config import superUser, databaseName, cleanDataFile,\
-    tableName, postgres_host, postgres_port, sqlColumns, columns
+from config import super_user, database_name, clean_data_file,\
+    table_name, postgres_host, postgres_port, sql_columns, columns
 
 app = Flask(__name__)
 api = Api(app)
@@ -14,10 +14,10 @@ class QueryListing(Resource):
 
     def __init__(self):
         # Assumes postgreSQL is running locally
-        # Ensure you have a superuser matching superUser
+        # Ensure you have a super_user matching super_user
         self.connection = psycopg2.connect(
             host=postgres_host, port=postgres_port,
-            dbname=databaseName, user=superUser
+            dbname=database_name, user=super_user
         )
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
@@ -48,8 +48,8 @@ class QueryListing(Resource):
                             ORDER BY distance(
                                 latitude, longitude, %(latitude)s, %(longitude)s)
                         ''').format(
-                            columns=sql.Identifier(sqlColumns),
-                            table=sql.Identifier(tableName)),
+                            columns=sql.Identifier(sql_columns),
+                            table=sql.Identifier(table_name)),
                             {
                                 'query': '%'+params['query']+'%',
                                 'latitude': params['latitude'],
@@ -67,8 +67,8 @@ class QueryListing(Resource):
                                 ORDER BY distance(
                                 latitude, longitude, %(latitude)s, %(longitude)s)
                         ''').format(
-                            columns=sql.Identifier(sqlColumns),
-                            table=sql.Identifier(tableName)),
+                            columns=sql.Identifier(sql_columns),
+                            table=sql.Identifier(table_name)),
                             ('%'+params['query']+'%',)
                     )
                     return json.dumps(self.cursor.fetchall(), indent=2, default=str)
@@ -80,8 +80,8 @@ class QueryListing(Resource):
                     SELECT * from {table} WHERE
                         name ILIKE %s
                     ''').format(
-                        columns=sql.Identifier(sqlColumns),
-                        table=sql.Identifier(tableName)),
+                        columns=sql.Identifier(sql_columns),
+                        table=sql.Identifier(table_name)),
                         ('%'+params['query']+'%',)
                 )
                 return zip_results(self.cursor.fetchall())
@@ -90,15 +90,17 @@ class QueryListing(Resource):
         elif params['latitude'] and params['longitude']:
             if params['distance']:
                 self.cursor.execute(sql.SQL(
-                    "SELECT * FROM {table} WHERE\
+                    '''
+                    SELECT * FROM {table} WHERE\
                     distance(\
                         latitude, longitude, %(latitude)s, %(longitude)s)\
                     < %(distance)s\
                     ORDER BY\
                     distance(\
-                        latitude, longitude, %(latitude)s, %(longitude)s)").format(
-                        columns=sql.Identifier(sqlColumns),
-                        table=sql.Identifier(tableName)),
+                        latitude, longitude, %(latitude)s, %(longitude)s)
+                    ''').format(
+                        columns=sql.Identifier(sql_columns),
+                        table=sql.Identifier(table_name)),
                         {
                             'latitude': params['latitude'],
                             'longitude': params['longitude'],
@@ -111,12 +113,14 @@ class QueryListing(Resource):
             # if no distance
             else:
                 self.cursor.execute(sql.SQL(
-                    "SELECT * FROM {table}\
+                    '''
+                    SELECT * FROM {table}\
                     ORDER BY\
                     distance(\
-                        latitude, longitude, %(latitude)s, %(longitude)s)").format(
-                        columns=sql.Identifier(sqlColumns),
-                        table=sql.Identifier(tableName)),
+                        latitude, longitude, %(latitude)s, %(longitude)s)
+                    ''').format(
+                        columns=sql.Identifier(sql_columns),
+                        table=sql.Identifier(table_name)),
                         {
                             'latitude': params['latitude'],
                             'longitude': params['longitude']

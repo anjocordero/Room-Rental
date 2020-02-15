@@ -1,5 +1,5 @@
 import csv
-from config import cleanDataFile
+from config import clean_data_file
 
 '''
 Errors:
@@ -37,7 +37,7 @@ def clean(dataFile):
             # Eliminate null characters and strange commas
             reader = csv.reader(line.replace("\0", "").replace("，", ",") for line in f)
 
-            with open(cleanDataFile, 'w', newline='') as fileToWrite:
+            with open(clean_data_file, 'w', newline='') as fileToWrite:
                 writer = csv.writer(fileToWrite)
                 header = True
                 for row in reader:
