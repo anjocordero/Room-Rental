@@ -5,7 +5,7 @@ from flask import Flask
 from psycopg2 import sql
 from flask_restful import Api, Resource, reqparse
 from config import superUser, databaseName, cleanDataFile,\
-    tableName, postgres_host, postgres_port, sqlColumns
+    tableName, postgres_host, postgres_port, sqlColumns, columns
 
 app = Flask(__name__)
 api = Api(app)
@@ -41,14 +41,14 @@ class QueryListing(Resource):
             if params['latitude'] and params['longitude']:
                 if params['distance']:
                     self.cursor.execute(sql.SQL(
-                        "SELECT * from {table} WHERE\
-                            name ILIKE %(query)s AND distance(\
-                                latitude, longitude, %(latitude)s, %(longitude)s) < %(distance)s\
-                            ORDER BY\
-                            distance(\
+                        '''
+                        SELECT * from {table} WHERE
+                            name ILIKE %(query)s AND distance(
+                                latitude, longitude, %(latitude)s, %(longitude)s) < %(distance)s
+                            ORDER BY distance(
                                 latitude, longitude, %(latitude)s, %(longitude)s)
-                                    ").format(
-                            # columns=sql.Identifier(sqlColumns),
+                        ''').format(
+                            columns=sql.Identifier(sqlColumns),
                             table=sql.Identifier(tableName)),
                             {
                                 'query': '%'+params['query']+'%',
@@ -61,9 +61,13 @@ class QueryListing(Resource):
                 # if no distance
                 else:
                     self.cursor.execute(sql.SQL(
-                        "SELECT * from {table} WHERE\
-                            name ILIKE %s").format(
-                            # columns=sql.Identifier(sqlColumns),
+                        '''
+                        SELECT * from {table} WHERE
+                            name ILIKE %s
+                                ORDER BY distance(
+                                latitude, longitude, %(latitude)s, %(longitude)s)
+                        ''').format(
+                            columns=sql.Identifier(sqlColumns),
                             table=sql.Identifier(tableName)),
                             ('%'+params['query']+'%',)
                     )
@@ -72,13 +76,15 @@ class QueryListing(Resource):
             # if query and no coordinates
             else:
                 self.cursor.execute(sql.SQL(
-                    "SELECT * from {table} WHERE\
-                        name ILIKE %s").format(
-                        # columns=sql.Identifier(sqlColumns),
+                    '''
+                    SELECT * from {table} WHERE
+                        name ILIKE %s
+                    ''').format(
+                        columns=sql.Identifier(sqlColumns),
                         table=sql.Identifier(tableName)),
                         ('%'+params['query']+'%',)
                 )
-                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                return zip_results(self.cursor.fetchall())
 
         # if coordinates and no query
         elif params['latitude'] and params['longitude']:
@@ -124,6 +130,12 @@ class QueryListing(Resource):
             response = "Incorrect parameters given. Provide query or coordinates."
             status_code = 422
             return (response, status_code)
+
+def zip_results(rows):
+    results = []
+    for row in rows:
+        results.append(dict(zip(columns, row)))
+    return json.dumps(results, indent=2, default=str)
 
 parser = reqparse.RequestParser()
 parser.add_argument('query', type=str)

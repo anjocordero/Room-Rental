@@ -3,11 +3,31 @@ superUser = 'postgres'
 databaseName = 'earnup'
 postgres_host = 'localhost'
 postgres_port = '5432'
+flask_port = '5000'
 
 dataFile = './data/AB_NYC_2019.csv'
 cleanDataFile = './data/AB_NYC_2019_CLEAN.csv'
 
+# Use this variable to choose which data is returned from SQL queries.
+# You'll need to change the '*' to {sqlColumns} in the strings.
 sqlColumns = 'id, name'
+columns = ('id',
+        'name',
+        'host_id',
+        'host_name',
+        'neighbourhood_group',
+        'neighbourhood',
+        'latitude',
+        'longitude',
+        'room_type',
+        'price',
+        'minimum_nights',
+        'number_of_reviews',
+        'last_review',
+        'reviews_per_month',
+        'calculated_host_listings_count',
+        'availability_365'
+        )
 
 # This table will be overwritten, so make sure you don't need data inside it.
 tableName = 'rentals'
