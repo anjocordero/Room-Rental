@@ -17,10 +17,10 @@ but if not, create one on the command line using:
 
 The applications' other dependencies are:
 
-- Flask
-- flask_restful
-- psycopg2
-- requests (if using get_requests.py)
+- Flask (used to run the server)
+- flask_restful (a library to help create simple APIs)
+- psycopg2 (Python software to integrate with PostgreSQL)
+- requests (to send GET requests in get_request.py)
 
 You can install these (and their own dependencies) using
 `pip3 install -r requirements.txt`
