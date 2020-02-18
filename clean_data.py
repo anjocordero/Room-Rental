@@ -30,15 +30,15 @@ Table Structure: (\
     )
 '''
 
-def clean(dataFile):
+def clean(data_file):
     try:
-        with open(dataFile, 'r', newline='') as f:
+        with open(data_file, 'r', newline='') as f:
 
             # Eliminate null characters and strange commas
             reader = csv.reader(line.replace("\0", "").replace("，", ",") for line in f)
 
-            with open(clean_data_file, 'w', newline='') as fileToWrite:
-                writer = csv.writer(fileToWrite)
+            with open(clean_data_file, 'w', newline='') as file_to_write:
+                writer = csv.writer(file_to_write)
                 header = True
                 for row in reader:
                     if not header:
