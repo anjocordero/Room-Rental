@@ -15,6 +15,15 @@ but if not, create one on the command line using:
 
 `createuser postgres --superuser`
 
+The applications' other dependencies are:
+    - Flask
+    - flask_restful
+    - psycopg2
+    - requests (if using get_requests.py)
+
+You can install these (and their own dependencies) using
+`pip3 install -r requirements.txt`
+
 ## Setup
 
 Before running the application for the first time, run `python3 setup.py`
