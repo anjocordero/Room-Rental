@@ -57,7 +57,7 @@ class QueryListing(Resource):
                                 'distance': params['distance']
                             }
                     )
-                    return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                    return zip_results(self.cursor.fetchall())
                 # if no distance
                 else:
                     self.cursor.execute(sql.SQL(
@@ -71,7 +71,7 @@ class QueryListing(Resource):
                             table=sql.Identifier(table_name)),
                             ('%'+params['query']+'%',)
                     )
-                    return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                    return zip_results(self.cursor.fetchall())
 
             # if query and no coordinates
             else:
@@ -79,6 +79,7 @@ class QueryListing(Resource):
                     '''
                     SELECT * from {table} WHERE
                         name ILIKE %s
+                        ORDER BY price
                     ''').format(
                         columns=sql.Identifier(sql_columns),
                         table=sql.Identifier(table_name)),
@@ -108,7 +109,7 @@ class QueryListing(Resource):
                         }
                         
                 )
-                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                return zip_results(self.cursor.fetchall())
 
             # if no distance
             else:
@@ -127,7 +128,7 @@ class QueryListing(Resource):
                         }
                     
                 )
-                return json.dumps(self.cursor.fetchall(), indent=2, default=str)
+                return zip_results(self.cursor.fetchall())
 
         # distance only
         else:
