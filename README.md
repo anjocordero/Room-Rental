@@ -20,14 +20,20 @@ but if not, create one on the command line using:
 Before running the application for the first time, run `python3 setup.py`
 This will clean up the provided data file and create a PostgreSQL database/table
 for use. The script overwrites the "rentals" server on the "earnup" database so
-if that happens to be something you already have make sure to save your data!
+make sure to save your data if that happens to be something you already have!
 
 ## Usage
 
-You can start the Flask server using:
+After running setup.py, you can start the Flask server using:
 `python3 rental.py`
 
-The get_request.py script can be used in a separate instance to send a get request
-to the server. The script prompts you for information so that you don't have to
-format it yourself, however you could also send a request using something like
-cURL.
+Once the server is running, you can use another terminal window to send a GET
+request using something like cURL:
+
+`curl -X GET -d "query=skylit" -d "latitude=40.5" -d "longitude=-74" -d "distance=15" http://localhost:5000`
+
+However, it may be more useful to you to use the included script get_request.py,
+which will prompt you for parameters and use python's requests library to send
+the request and print the information with proper indentation.
+
+`python get_request.py`
